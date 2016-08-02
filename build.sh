@@ -1,3 +1,3 @@
 #!/bin/sh
-./gradlew clean build
-read -p "Press any key to continue..."
+export set JAVA_HOME=/c/Program\ Files/Java/jdk1.8.0_51/
+./gradlew build

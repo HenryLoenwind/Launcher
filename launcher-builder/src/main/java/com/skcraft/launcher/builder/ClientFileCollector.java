@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import java.util.List;
+
 /**
  * Walks a path and adds hashed path versions to the given
  * {@link com.skcraft.launcher.model.modpack.Manifest}.
@@ -27,6 +29,8 @@ import java.nio.charset.Charset;
 public class ClientFileCollector extends DirectoryWalker {
 
     public static final String URL_FILE_SUFFIX = ".url.txt";
+    public static final String URL_FILE_SUFFIX2 = ".url";
+    public static final String BACKUP_FILE_SUFFIX = ".bak";
 
     private final Manifest manifest;
     private final PropertiesApplicator applicator;
@@ -54,7 +58,7 @@ public class ClientFileCollector extends DirectoryWalker {
 
     @Override
     protected void onFile(File file, String relPath) throws IOException {
-        if (file.getName().endsWith(FileInfoScanner.FILE_SUFFIX) || file.getName().endsWith(URL_FILE_SUFFIX)) {
+        if (file.getName().endsWith(FileInfoScanner.FILE_SUFFIX) || file.getName().endsWith(URL_FILE_SUFFIX) || file.getName().endsWith(URL_FILE_SUFFIX2) || file.getName().endsWith(BACKUP_FILE_SUFFIX)) {
             return;
         }
 
@@ -64,10 +68,15 @@ public class ClientFileCollector extends DirectoryWalker {
         
         // url.txt override file
         File urlFile = new File(file.getAbsoluteFile().getParentFile(), file.getName() + URL_FILE_SUFFIX);
+        File urlFile2 = new File(file.getAbsoluteFile().getParentFile(), file.getName() + URL_FILE_SUFFIX2);
         String location;
         boolean copy = true;
         if (urlFile.exists() && !System.getProperty("com.skcraft.builder.ignoreURLOverrides", "false").equalsIgnoreCase("true")) {
             location = Files.readFirstLine(urlFile, Charset.defaultCharset());
+            copy = false;
+        } else if (urlFile2.exists() && !System.getProperty("com.skcraft.builder.ignoreURLOverrides", "false").equalsIgnoreCase("true")) {
+        	  List<String> lines = Files.readLines(urlFile2, Charset.defaultCharset());
+            location = lines.get(1).replace("URL=", "");
             copy = false;
         } else {
             location = hash.substring(0, 2) + "/" + hash.substring(2, 4) + "/" + hash;
